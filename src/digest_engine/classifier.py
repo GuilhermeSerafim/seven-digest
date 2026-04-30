@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 from .types import Commit, ClassifiedCommit, RepoCommits
-from .llm_client import LLMClient, ClassificationRequest
+from .llm_client import LLMClient, ClassificationRequest, SummaryRequest
 
 
 def preclassify_conventional(commit: Commit) -> ClassifiedCommit | None:
@@ -70,3 +70,15 @@ def classify_all(
                 results.append(cc)
         out[repo.repo_name] = results
     return out
+
+
+def synthesize_executive_summary(
+    classified_by_repo: dict[str, list[ClassifiedCommit]],
+    *, llm: LLMClient, audience: str,
+) -> str:
+    flat: list[ClassifiedCommit] = []
+    for items in classified_by_repo.values():
+        flat.extend(items)
+    if not flat:
+        return "Semana sem entregas relevantes nos repositórios monitorados."
+    return llm.synthesize_summary(SummaryRequest(classified=flat, audience=audience))

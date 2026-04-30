@@ -88,3 +88,28 @@ def test_classify_all_batches_in_chunks_of_15(tmp_path: Path):
     fake = FakeLLM()
     classify_all([repo], llm=fake, audience="aud", cache_dir=tmp_path, batch_size=15)
     assert len(fake.classify_calls) == 3  # 15 + 15 + 3
+
+
+from digest_engine.classifier import synthesize_executive_summary
+
+
+def test_synthesize_executive_summary_calls_llm():
+    classified_by_repo = {
+        "backend": [ClassifiedCommit(
+            commit=_c("feat: x"), type="feat",
+            business_value="v", business_description="d",
+            complexity_estimate="alta")],
+        "frontend": [],
+    }
+    fake = FakeLLM()
+    s = synthesize_executive_summary(classified_by_repo, llm=fake, audience="aud")
+    assert s == "summary"
+    assert len(fake.summary_calls) == 1
+    # Includes commits from all repos
+    assert len(fake.summary_calls[0].classified) == 1
+
+
+def test_synthesize_executive_summary_handles_empty():
+    fake = FakeLLM()
+    s = synthesize_executive_summary({}, llm=fake, audience="aud")
+    assert isinstance(s, str)
