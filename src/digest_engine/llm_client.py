@@ -87,6 +87,8 @@ class OpenAIClient:
             response_format={"type": "json_object"},
             temperature=0.2,
         )
+        if not resp.choices:
+            raise ValueError("Empty response from LLM")
         content = resp.choices[0].message.content
         return parse_classification_response(content, req.commits)
 
@@ -95,7 +97,7 @@ class OpenAIClient:
         bullets = [
             f"- [{c.type}] {c.business_description}" for c in req.classified if c.business_description
         ]
-        user = "Entregas da semana:\n" + "\n".join(bullets) if bullets else "Sem entregas relevantes."
+        user = ("Entregas da semana:\n" + "\n".join(bullets)) if bullets else "Sem entregas relevantes."
         resp = self._client.chat.completions.create(
             model=self.model,
             messages=[
@@ -104,4 +106,6 @@ class OpenAIClient:
             ],
             temperature=0.3,
         )
+        if not resp.choices:
+            raise ValueError("Empty response from LLM")
         return resp.choices[0].message.content.strip()
