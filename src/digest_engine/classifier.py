@@ -1,5 +1,3 @@
-from dataclasses import asdict, replace
-from datetime import datetime
 from pathlib import Path
 import json
 from .types import Commit, ClassifiedCommit, RepoCommits
