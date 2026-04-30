@@ -1,0 +1,39 @@
+project:
+  name: "SEVEN Tools"
+  brand:
+    primary_color: "#1e3a5f"
+    light_color: "#e8eef5"
+    logo_path: null  # set when logo asset is added
+
+repos:
+  - name: backend
+    path: "./_checkout/seven_tools_api"
+    branch: main
+    ignore_patterns:
+      - "^chore\\(deps\\):"
+      - "^Merge pull request"
+  - name: frontend
+    path: "./_checkout/seven_tools_front"
+    branch: main
+    ignore_patterns:
+      - "^chore\\(deps\\):"
+      - "^Merge pull request"
+
+classification:
+  llm_provider: openai
+  model: gpt-4o
+  audience: "sócios não-técnicos da SEVEN, em pt-BR, contexto comercial/vendas"
+  prompt_overrides: null
+
+screenshots:
+  enabled: false
+
+delivery:
+  whatsapp:
+    provider: meta_cloud_api
+    phone_number_id: "${META_PHONE_NUMBER_ID}"
+    template_name: "seven_relatorio_semanal"
+    recipients: []  # populate before first run; spec § 9 item 9
+  archive:
+    path: "reports/"
+    commit_to_repo: true
