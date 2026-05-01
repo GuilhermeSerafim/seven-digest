@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import subprocess
 from ..types import ReportData
 
 
@@ -55,3 +56,21 @@ def archive_report(*, pdf_bytes: bytes, data: ReportData, reports_dir: Path) -> 
     index_path.write_text(json.dumps(idx, ensure_ascii=False, indent=2), encoding="utf-8")
 
     return ArchiveResult(pdf_path=pdf_path, data_path=data_path, index_path=index_path)
+
+
+def git_commit_and_push(*, reports_dir: Path, week_id: str, push: bool = True) -> None:
+    repo_root = reports_dir.parent
+    subprocess.run(["git", "-C", str(repo_root), "add", str(reports_dir)],
+                   check=True, capture_output=True)
+    status = subprocess.run(
+        ["git", "-C", str(repo_root), "status", "--porcelain"],
+        capture_output=True, text=True, check=True).stdout
+    if not status.strip():
+        return
+    subprocess.run(
+        ["git", "-C", str(repo_root), "commit",
+         "-m", f"chore(digest): relatório semana {week_id}"],
+        check=True, capture_output=True)
+    if push:
+        subprocess.run(["git", "-C", str(repo_root), "push"],
+                       check=True, capture_output=True)

@@ -45,3 +45,48 @@ def test_archive_replaces_existing_entry_for_same_week(tmp_path: Path):
     idx = json.loads((tmp_path / "index.json").read_text(encoding="utf-8"))
     assert len([r for r in idx["reports"] if r["week_id"] == "2026-W17"]) == 1
     assert (tmp_path / "2026-W17" / "relatorio.pdf").read_bytes() == b"%PDF-1.4 v2"
+
+
+import subprocess
+from digest_engine.delivery.archive import git_commit_and_push
+
+
+def test_git_commit_and_push_creates_commit(tmp_path: Path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "t@t.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "T"], cwd=repo, check=True)
+    (repo / "seed.txt").write_text("a")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
+
+    reports_dir = repo / "reports"
+    reports_dir.mkdir()
+    (reports_dir / "2026-W17").mkdir()
+    (reports_dir / "2026-W17" / "relatorio.pdf").write_bytes(b"x")
+    (reports_dir / "index.json").write_text("{}")
+
+    git_commit_and_push(reports_dir=reports_dir, week_id="2026-W17", push=False)
+
+    log = subprocess.run(["git", "log", "--oneline"], cwd=repo,
+                         capture_output=True, text=True, check=True).stdout
+    assert "2026-W17" in log
+
+
+def test_git_commit_and_push_skips_when_no_changes(tmp_path: Path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "t@t.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "T"], cwd=repo, check=True)
+    (repo / "seed.txt").write_text("a")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "seed"], cwd=repo, check=True, capture_output=True)
+
+    reports_dir = repo / "reports"
+    reports_dir.mkdir()
+    git_commit_and_push(reports_dir=reports_dir, week_id="2026-W17", push=False)
+    log = subprocess.run(["git", "log", "--oneline"], cwd=repo,
+                         capture_output=True, text=True, check=True).stdout
+    assert log.count("\n") == 1
