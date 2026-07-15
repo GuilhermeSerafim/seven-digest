@@ -1,8 +1,6 @@
 name: llm-smoke
 
 on:
-  schedule:
-    - cron: "0 11 * * *"  # daily 11:00 UTC
   workflow_dispatch:
 
 jobs:
