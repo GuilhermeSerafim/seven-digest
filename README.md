@@ -1,14 +1,22 @@
-# digest-engine
+# Seven Digest
 
-Automated weekly progress digest. Reads commits from configured repos, translates to business language via LLM, renders branded PDF, delivers via WhatsApp.
+Pipeline Python para transformar commits de repositórios configurados em um resumo semanal: coleta, classificação e síntese com LLM, geração de PDF, arquivamento e entrega opcional via WhatsApp. O manifesto exige Python 3.12 ou superior.
 
-## Run locally
+## Configuração e efeitos da execução
+
+A CLI lê `digest.config.yaml` e usa `OPENAI_API_KEY`; o envio WhatsApp usa `META_ACCESS_TOKEN` quando há destinatários configurados. Configure apenas repositórios e destinatários autorizados. A classificação envia conteúdo ao provedor de LLM e pode gerar custos. O arquivamento pode fazer commit e push quando habilitado na configuração.
+
+`--dry-run` desativa o envio WhatsApp e o commit/push do fluxo, mas continua coletando dados, usando o LLM e gravando PDF e arquivos locais. Portanto, esse modo não é uma simulação offline nem uma garantia de ausência de custos.
+
+A suíte inclui testes unitários e smoke tests de integração. O comando padrão do pytest exclui `tests/smoke`; esses testes de integração usam serviços externos.
+
+## Execução local
 
 ```
-pip install -e .[dev]
+python -m pip install -e ".[dev]"
 python -m digest_engine --week 2026-W17
 ```
 
-## Config
+## Configuração
 
-Edit `digest.config.yaml`. See spec at `../docs/superpowers/specs/2026-04-29-progress-digest-design.md`.
+Edite `digest.config.yaml` para definir repositórios, modelo, identidade visual, arquivamento e destinatários.
